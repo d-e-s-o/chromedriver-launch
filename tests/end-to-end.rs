@@ -40,6 +40,8 @@ async fn chromedriver_launching() {
     "--mute-audio",
     "--incognito",
     "--headless",
+    // NB: This flag is required in some CI environments.
+    "--no-sandbox",
   ];
 
   let chromedriver = Chromedriver::launch().unwrap();
