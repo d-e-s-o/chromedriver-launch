@@ -1,7 +1,19 @@
 [package]
 name = "chromedriver-launch"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2021"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/d-e-s-o/chromedriver-launch.git"
+documentation = "https://docs.rs/chromedriver-launch"
+readme = "README.md"
+categories = [
+  "development-tools::testing",
+  "web-programming::http-client",
+]
+keywords = ["webdriver", "chromedriver", "automation"]
+description = """
+A crate for launching a chromedriver process.
+"""
 
 [dependencies]
 anyhow = { version = "1.0.80", default-features = false, features = ["std"] }
