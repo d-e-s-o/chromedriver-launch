@@ -59,6 +59,7 @@ where
   let buf = stat(path)?;
 
   if is_socket(buf.st_mode) {
+    #[allow(trivial_numeric_casts)]
     Ok(buf.st_ino as _)
   } else {
     Err(io::Error::new(io::ErrorKind::NotFound, "no socket found"))

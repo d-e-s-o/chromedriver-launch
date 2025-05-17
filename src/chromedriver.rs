@@ -115,6 +115,7 @@ impl Default for Builder {
 
 
 /// A client for shaving data of websites.
+#[derive(Debug)]
 pub struct Chromedriver {
   /// The Chromdriver process.
   process: Child,

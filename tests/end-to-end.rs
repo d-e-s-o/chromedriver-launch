@@ -1,6 +1,8 @@
 // Copyright (C) 2025 Daniel Mueller <deso@posteo.net>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+//! End-to-end tests for `chromedriver-launch`.
+
 use chromedriver_launch::Chromedriver;
 
 use fantoccini::wd::Capabilities;
