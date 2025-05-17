@@ -1,5 +1,5 @@
-Unreleased
-----------
+0.1.1
+-----
 - Made sure to collect zombie processes after termination
 
 
