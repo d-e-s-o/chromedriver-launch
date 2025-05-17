@@ -138,10 +138,17 @@ impl Chromedriver {
   /// Destroy the Chromedriver process, freeing up all resources.
   #[inline]
   fn destroy_impl(&mut self) -> Result<()> {
-    self
+    let () = self
       .process
       .kill()
-      .context("failed to shut down chromedriver process")
+      .context("failed to shut down chromedriver process")?;
+    // Clean up the child to prevent any build up of zombie processes.
+    // The `kill()` should pretty much be immediate, so the `wait()`
+    // shouldn't be blocking for long. However, using `try_wait()`
+    // instead could probably be racy, as `kill()` will only deliver the
+    // signal, not ensure that it got processed to completion.
+    let _status = self.process.wait()?;
+    Ok(())
   }
 
   /// Destroy the Chromedriver process, freeing up all resources.
