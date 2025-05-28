@@ -8,6 +8,7 @@
 mod chromedriver;
 mod socket;
 mod tcp;
+mod util;
 
 pub use chromedriver::Builder;
 pub use chromedriver::Chromedriver;
