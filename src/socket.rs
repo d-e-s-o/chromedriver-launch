@@ -18,18 +18,8 @@ use libc::stat64;
 use libc::S_IFMT;
 use libc::S_IFSOCK;
 
+use crate::util::check;
 
-/// Check the return value of a system call.
-fn check<T>(result: T, error: T) -> io::Result<()>
-where
-  T: Copy + PartialOrd<T>,
-{
-  if result == error {
-    Err(io::Error::last_os_error())
-  } else {
-    Ok(())
-  }
-}
 
 fn stat<P>(path: P) -> Result<Stat64>
 where
