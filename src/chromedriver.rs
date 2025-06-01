@@ -5,6 +5,7 @@ use std::collections::HashSet;
 use std::net::IpAddr;
 use std::net::Ipv4Addr;
 use std::net::SocketAddr;
+use std::os::unix::process::CommandExt as _;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Child;
@@ -18,8 +19,13 @@ use anyhow::bail;
 use anyhow::Context as _;
 use anyhow::Result;
 
+use libc::killpg;
+use libc::setpgid;
+use libc::SIGKILL;
+
 use crate::socket;
 use crate::tcp;
+use crate::util::check;
 
 
 /// The name of the `chromedriver` binary.
@@ -89,12 +95,21 @@ impl Builder {
   /// Launch the Chromedriver process and wait for it to be fully
   /// initialized and serving a webdriver service.
   pub fn launch(self) -> Result<Chromedriver> {
-    let process = Command::new(CHROME_DRIVER)
-      .arg("--port=0")
-      .stdout(Stdio::piped())
-      .stderr(Stdio::piped())
-      .spawn()
-      .with_context(|| format!("failed to launch `{CHROME_DRIVER}` instance"))?;
+    let process = unsafe {
+      Command::new(CHROME_DRIVER)
+        .arg("--port=0")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .pre_exec(|| {
+          // Create a new process group, so that we can destroy the
+          // entire group and have reasonable assurance that nothing
+          // stray stays around.
+          let result = setpgid(0, 0);
+          check(result, -1)
+        })
+        .spawn()
+        .with_context(|| format!("failed to launch `{CHROME_DRIVER}` instance"))
+    }?;
 
     let pid = process.id();
     let port = find_localhost_port(pid)?;
@@ -137,14 +152,16 @@ impl Chromedriver {
   }
 
   /// Destroy the Chromedriver process, freeing up all resources.
-  #[inline]
   fn destroy_impl(&mut self) -> Result<()> {
-    let () = self
-      .process
-      .kill()
-      .context("failed to shut down chromedriver process")?;
+    // NB: We created the process in a new process group, so the process
+    //     ID equals the process group ID here.
+    let pid = self.process.id();
+    // SAFETY: `killpg` is always save to call.
+    let result = unsafe { killpg(pid as _, SIGKILL) };
+    let () = check(result, -1).context("failed to shut down chromedriver process group")?;
+
     // Clean up the child to prevent any build up of zombie processes.
-    // The `kill()` should pretty much be immediate, so the `wait()`
+    // The `killpg()` should pretty much be immediate, so the `wait()`
     // shouldn't be blocking for long. However, using `try_wait()`
     // instead could probably be racy, as `kill()` will only deliver the
     // signal, not ensure that it got processed to completion.
