@@ -20,7 +20,7 @@ anyhow = { version = "1.0.80", default-features = false, features = ["std"] }
 libc = { version = "0.2", default-features = false }
 
 [dev-dependencies]
-fantoccini = { version = "0.21", default-features = false, features = ["native-tls"] }
+fantoccini = { version = "0.22", default-features = false, features = ["native-tls"] }
 serde_json = { version = "1.0", default-features = false, features = ["std"] }
 tempfile = { version = "3.2", default-features = false }
 tokio = { version = "1.0", default-features = false, features = ["macros"] }
