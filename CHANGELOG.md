@@ -1,3 +1,8 @@
+Unreleased
+----------
+- Added `Builder::set_args` method for setting driver process arguments
+
+
 0.1.2
 -----
 - Spawn `chromedriver` and derived processes into dedicated process

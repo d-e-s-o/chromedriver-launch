@@ -1,7 +1,9 @@
-// Copyright (C) 2025 Daniel Mueller <deso@posteo.net>
+// Copyright (C) 2025-2026 Daniel Mueller <deso@posteo.net>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use std::collections::HashSet;
+use std::ffi::OsStr;
+use std::ffi::OsString;
 use std::net::IpAddr;
 use std::net::Ipv4Addr;
 use std::net::SocketAddr;
@@ -74,6 +76,8 @@ fn find_localhost_port(pid: u32) -> Result<u16> {
 pub struct Builder {
   /// The path to the `chromedriver` binary to use.
   chromedriver: PathBuf,
+  /// Arguments to pass to the driver invocation.
+  driver_args: Vec<OsString>,
   /// The timeout to use waiting for `chromedriver` to start up
   /// properly.
   timeout: Duration,
@@ -83,6 +87,31 @@ impl Builder {
   /// Set the Chromedriver to use.
   pub fn set_chromedriver(mut self, chromedriver: impl AsRef<Path>) -> Self {
     self.chromedriver = chromedriver.as_ref().to_path_buf();
+    self
+  }
+
+  /// Set the arguments to pass to the Chromedriver being started.
+  ///
+  /// Note that arguments are *not* appended but overwritten.
+  ///
+  /// # Example
+  /// ```rust
+  /// # use chromedriver_launch::Chromedriver;
+  /// // Enable verbose logging.
+  /// let chromedriver = Chromedriver::builder()
+  ///   .set_args(["--verbose", "--log-path=/tmp/chromedriver.log"])
+  ///   .launch()
+  ///   .unwrap();
+  /// ```
+  pub fn set_args<I, S>(mut self, args: I) -> Self
+  where
+    I: IntoIterator<Item = S>,
+    S: AsRef<OsStr>,
+  {
+    self.driver_args = args
+      .into_iter()
+      .map(|s| s.as_ref().to_os_string())
+      .collect();
     self
   }
 
@@ -98,6 +127,7 @@ impl Builder {
     let process = unsafe {
       Command::new(CHROME_DRIVER)
         .arg("--port=0")
+        .args(self.driver_args)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .pre_exec(|| {
@@ -123,6 +153,7 @@ impl Default for Builder {
   fn default() -> Self {
     Self {
       chromedriver: PathBuf::from(CHROME_DRIVER),
+      driver_args: Vec::new(),
       timeout: PORT_FIND_TIMEOUT,
     }
   }
