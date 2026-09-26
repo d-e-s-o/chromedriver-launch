@@ -1,5 +1,5 @@
-Unreleased
-----------
+0.1.3
+-----
 - Added `Builder::set_args` method for setting driver process arguments
 
 
